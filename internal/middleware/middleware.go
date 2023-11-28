@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	d2dContext "github.com/scalent-io/orchestration-framework/pkg/context"
+	workflowContext "github.com/scalent-io/orchestration-framework/pkg/context"
 	"github.com/scalent-io/orchestration-framework/pkg/log"
 )
 
@@ -34,19 +34,19 @@ func (m *MiddlewareImpl) Access() gin.HandlerFunc {
 		c.Writer.Header().Set("Content-Type", "application/json")
 		ctx := c.Request.Context()
 		var reqId string
-		reqId = c.Request.Header.Get(d2dContext.REQUEST_ID)
+		reqId = c.Request.Header.Get(workflowContext.REQUEST_ID)
 
 		if reqId == EMPTY_STRING {
 			log.Info("internal>middleware: RequestID", EMPTY_STRING)
 			// generate request id
 			reqId = uuid.New().String()
-			ctx = context.WithValue(ctx, d2dContext.ContextKey(d2dContext.REQUEST_ID), reqId)
+			ctx = context.WithValue(ctx, workflowContext.ContextKey(workflowContext.REQUEST_ID), reqId)
 			// send the request ID in response header
 			c.Writer.Header().Add("requestID", reqId)
 		} else {
 			// create context with values
-			ctx = context.WithValue(c, d2dContext.ContextKey(d2dContext.REQUEST_ID), reqId)
-			ctx = context.WithValue(ctx, d2dContext.ContextKey(d2dContext.REQUEST_ID), reqId)
+			ctx = context.WithValue(c, workflowContext.ContextKey(workflowContext.REQUEST_ID), reqId)
+			ctx = context.WithValue(ctx, workflowContext.ContextKey(workflowContext.REQUEST_ID), reqId)
 			// send the request ID in response header
 			c.Writer.Header().Add("requestID", reqId)
 		}
@@ -54,7 +54,7 @@ func (m *MiddlewareImpl) Access() gin.HandlerFunc {
 		log.Info("internal>middleware: auth middleware started", reqId)
 		log.Info("internal>middleware: RequestID", c.Request.URL.Path)
 
-		token := c.Request.Header.Get(d2dContext.TOKEN)
+		token := c.Request.Header.Get(workflowContext.TOKEN)
 
 		if len(token) == 0 {
 			cookieData, err := c.Request.Cookie("token")
@@ -68,8 +68,8 @@ func (m *MiddlewareImpl) Access() gin.HandlerFunc {
 		session := ""
 
 		// add the token and the session data
-		ctxWithAuthData := context.WithValue(ctx, d2dContext.ContextKey(d2dContext.TOKEN), token)
-		ctxWithAuthData = context.WithValue(ctxWithAuthData, d2dContext.ContextKey(d2dContext.SESSION_DATA), session)
+		ctxWithAuthData := context.WithValue(ctx, workflowContext.ContextKey(workflowContext.TOKEN), token)
+		ctxWithAuthData = context.WithValue(ctxWithAuthData, workflowContext.ContextKey(workflowContext.SESSION_DATA), session)
 
 		c.Request = c.Request.WithContext(ctxWithAuthData)
 

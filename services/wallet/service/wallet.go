@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/scalent-io/orchestration-framework/entity"
-	d2dContext "github.com/scalent-io/orchestration-framework/pkg/context"
+	workflowContext "github.com/scalent-io/orchestration-framework/pkg/context"
 	"github.com/scalent-io/orchestration-framework/pkg/errors"
 	"github.com/scalent-io/orchestration-framework/pkg/log"
 )
@@ -18,7 +18,7 @@ func NewWalletServiceImpl(walletRepo WalletRepo) (*WalletServiceImpl, error) {
 }
 
 func (s *WalletServiceImpl) Ping(ctx context.Context) errors.Response {
-	reqID, _ := d2dContext.GetRequestIdFromContext(ctx)
+	reqID, _ := workflowContext.GetRequestIdFromContext(ctx)
 	log.Info("wallet>wallet>service: pinf started ", reqID)
 
 	s.walletRepo.Ping(ctx)
@@ -26,7 +26,7 @@ func (s *WalletServiceImpl) Ping(ctx context.Context) errors.Response {
 }
 
 func (s *WalletServiceImpl) GetWallet(ctx context.Context, token string) (*entity.User, errors.Response) {
-	reqID, _ := d2dContext.GetRequestIdFromContext(ctx)
+	reqID, _ := workflowContext.GetRequestIdFromContext(ctx)
 	log.Info("wallet>wallet>service: get wallet started", reqID)
 
 	walletEntity, err := s.walletRepo.GetWallet(ctx, token)
