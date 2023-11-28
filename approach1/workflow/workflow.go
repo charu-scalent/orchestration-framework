@@ -33,6 +33,7 @@ func (w *Workflow) Register(instance interface{}, method, rollbackMethod string,
 }
 
 func (w *Workflow) Execute(ctx context.Context, idempotentKey string) error {
+	//TODO: Executes the steps concurrently
 	for _, step := range w.steps {
 		if err := w.executeStep(ctx, idempotentKey, step); err != nil {
 			return err
@@ -49,7 +50,7 @@ func (w *Workflow) executeStep(ctx context.Context, idempotentKey string, step S
 
 	if isStepAlreadyExecuted(ctx, step.Method, idempotentKey) {
 		fmt.Printf("Step %s skipped as it has already been executed with idempotent key: %s\n", step.Method, idempotentKey)
-		return nil
+		return nil //TODO: Return the value from previos execution
 	}
 
 	var b reflect.Value = reflect.ValueOf(ctx)
@@ -57,7 +58,8 @@ func (w *Workflow) executeStep(ctx context.Context, idempotentKey string, step S
 	ref = append(ref, b)
 
 	method := reflect.ValueOf(step.Instance).MethodByName(step.Method)
-	method.Call(ref) //TODO: handle error and start rolling back if it's a mandatory step
+	method.Call(ref) //TODO: receive values, handle error and start rolling back if it's a mandatory step
+	//TODO:  store the step execution response against idempotent-key
 
 	markStepAsExecuted(ctx, step.Method, idempotentKey)
 
