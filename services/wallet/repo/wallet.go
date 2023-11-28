@@ -10,6 +10,15 @@ import (
 	"github.com/scalent-io/orchestration-framework/pkg/log"
 )
 
+var (
+	Users = []entity.User{
+		{ID: 1, Name: "Charu", WalletBalance: 1000, Token: "token1"},
+		{ID: 2, Name: "Swati", WalletBalance: 1500, Token: "token2"},
+		{ID: 3, Name: "Prajkta", WalletBalance: 800, Token: "token3"},
+		{ID: 4, Name: "Akash", WalletBalance: 1200, Token: "token4"},
+	}
+)
+
 type WalletRepoImpl struct {
 	db *sqlx.DB
 }
@@ -28,5 +37,13 @@ func (r *WalletRepoImpl) Ping(ctx context.Context) errors.Response {
 func (r *WalletRepoImpl) GetWallet(ctx context.Context, token string) (*entity.User, errors.Response) {
 	reqID, _ := workflowContext.GetRequestIdFromContext(ctx)
 	log.Info("wallet>wallet>repo: get wallet started ", reqID)
-	return &entity.User{}, nil
+
+	var result entity.User
+	for _, user := range Users {
+		if user.Token == "token1" {
+			result = user
+			break
+		}
+	}
+	return &result, nil
 }
