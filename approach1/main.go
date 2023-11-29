@@ -4,14 +4,21 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 	"github.com/scalent-io/orchestration-framework/approach1/workflow"
 )
 
 func main() {
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
 	idempotentKey := uuid.New().String()
-	var idempotentOp IdempotentOp
+	idempotentOp := IdempotentOp{
+		redisClient: redisClient,
+	}
 
 	w := workflow.CreateWorkflow(idempotentKey, idempotentOp)
 	order := Order{Id: 1, Total: 120}
