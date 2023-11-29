@@ -1,3 +1,0 @@
-package commonConstants
-
-const ()
