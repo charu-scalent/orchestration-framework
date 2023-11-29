@@ -71,20 +71,19 @@ func TestWorkflow_Register(t *testing.T) {
 		args   args
 	}{
 		{
-			name:   "Register Workflow Test",
+			name: "Register Workflow Test",
 			fields: fields{
 				Steps:          []Step{},
 				IdempotentKey:  "idem_key",
 				IdempotentInst: idempotentMockInst,
 			},
-			args:   args{
+			args: args{
 				instance:        orderMockInstance,
 				method:          "CreateOrder",
 				rollbackMethod:  "RollbackCreateOrder",
 				isMandatoryStep: false,
 			},
 		},
-	
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -99,6 +98,20 @@ func TestWorkflow_Register(t *testing.T) {
 }
 
 func TestWorkflow_Execute(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idempotentMockInst := NewMockIdempotent(ctrl)
+	idempotentMockInst.EXPECT().Save("idem_key", gomock.Any()).AnyTimes()
+	idempotentMockInst.EXPECT().IsStepAlreadyExecuted(context.Background(), "CreateOrder", "idem_key").Return(true)
+	idempotentMockInst.EXPECT().IsStepAlreadyExecuted(context.Background(), "CreateOrder", "idem_key").Return(false)
+	// idempotentMockInst.EXPECT().IsStepAlreadyExecuted(context.Background(), "CreateOrder", "idem_key_new").Return(false)
+	idempotentMockInst.EXPECT().MarkStepAsExecuted(context.Background(), "idem_key", "CreateOrder", gomock.Any(), nil)
+	// idempotentMockInst.EXPECT().MarkStepAsExecuted(context.Background(), "idem_key_new", "CreateOrder", gomock.Any(), nil)
+
+	orderMockInstance := NewMockOrderInterface(ctrl)
+	orderMockInstance.EXPECT().CreateOrder(context.Background()).Return(gomock.Any(), nil)
+	// orderMockInstance.EXPECT().CreateOrder(context.Background()).Return(gomock.Any(), errors.New("some error"))
+
 	type fields struct {
 		Steps          []Step
 		IdempotentKey  string
@@ -113,7 +126,50 @@ func TestWorkflow_Execute(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "Execute test -  step executed true",
+			fields: fields{
+				Steps: []Step{
+					{
+						Instance:        orderMockInstance,
+						Method:          "CreateOrder",
+						RollbackMethod:  "RollbackCreateOrder",
+						IsMandatoryStep: false,
+						IsExecuted:      false,
+						StepResult:      nil,
+						StepError:       nil,
+					},
+				},
+				IdempotentKey:  "idem_key",
+				IdempotentInst: idempotentMockInst,
+			},
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Execute test -  step executed false",
+			fields: fields{
+				Steps: []Step{
+					{
+						Instance:        orderMockInstance,
+						Method:          "CreateOrder",
+						RollbackMethod:  "RollbackCreateOrder",
+						IsMandatoryStep: false,
+						IsExecuted:      false,
+						StepResult:      nil,
+						StepError:       nil,
+					},
+				},
+				IdempotentKey:  "idem_key",
+				IdempotentInst: idempotentMockInst,
+			},
+			args: args{
+				ctx: context.Background(),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
