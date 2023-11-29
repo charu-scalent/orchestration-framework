@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-redis/redis"
 	"github.com/google/uuid"
-	"github.com/scalent-io/ecommerce/workflow"
+	"github.com/charu-scalent/orchestration-framework/workflow"
 )
 
 func main() {

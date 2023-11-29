@@ -19,3 +19,7 @@ Your task is to design and build a Fault-Tolerant Workflow Orchestration Framewo
  - Include unit tests to validate the framework's reliability.
 
 This project aims to assess your ability to create a resilient system for orchestrating distributed workflows. Please provide a detailed design of the framework, including the actual implementation and unit tests.
+
+mockgen -destination=mocks/mock_converter.go -package=mocks -source=pkg/currency/converterInterface.go Converter
+
+mockgen -destination=mocks/mock_workflow.go -package=mocks -source=./workflow/idempotent.go Idempotent

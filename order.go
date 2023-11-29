@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+type OrderInterface interface {
+	CreateOrder(ctx context.Context) (interface{}, error)
+	RollbackCreateOrder(ctx context.Context) error
+}
+
 type Order struct {
 	Id    int
 	Total float64

@@ -3,7 +3,7 @@ package workflow
 import "context"
 
 func (w *Workflow) rollBack(ctx context.Context, idempotentKey string) error {
-	for _, step := range w.steps {
+	for _, step := range w.Steps {
 		if err := w.rollbackStep(ctx, idempotentKey, step); err != nil {
 			return err
 		}

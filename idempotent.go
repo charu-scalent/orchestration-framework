@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"github.com/scalent-io/ecommerce/workflow"
+	"github.com/charu-scalent/orchestration-framework/workflow"
 )
 
 const idmp_key_prefix = "IDMP:"

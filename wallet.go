@@ -5,13 +5,17 @@ import (
 	"fmt"
 )
 
+type WalletInterface interface {
+	DeductBalance(ctx context.Context) error
+	RollbackDeductBalance(ctx context.Context) error
+}
+
 type Wallet struct {
 	Id      int
 	Balance float64
 }
 
 func (w Wallet) DeductBalance(ctx context.Context) error {
-
 	fmt.Printf("Wallet Instance - Deduct balance executed \n")
 	return nil
 }

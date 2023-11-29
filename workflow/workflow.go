@@ -10,9 +10,9 @@ import (
 const TOTAL_EXPECTED_RESPONSES = 2
 
 type Workflow struct {
-	steps          []Step
-	idempotentKey  string
-	idempotentInst Idempotent
+	Steps          []Step
+	IdempotentKey  string
+	IdempotentInst Idempotent
 }
 
 type Step struct {
@@ -27,8 +27,8 @@ type Step struct {
 
 func CreateWorkflow(idempotentKey string, idempotentInst Idempotent) *Workflow {
 	return &Workflow{
-		idempotentKey:  idempotentKey,
-		idempotentInst: idempotentInst,
+		IdempotentKey:  idempotentKey,
+		IdempotentInst: idempotentInst,
 	}
 }
 
@@ -39,13 +39,13 @@ func (w *Workflow) Register(instance interface{}, method, rollbackMethod string,
 		RollbackMethod:  rollbackMethod,
 		IsMandatoryStep: isMandatoryStep,
 	}
-	w.steps = append(w.steps, step)
+	w.Steps = append(w.Steps, step)
 }
 
 func (w *Workflow) Execute(ctx context.Context) error {
-	w.idempotentInst.Save(w.idempotentKey, w.steps)
-	for _, step := range w.steps {
-		err := w.executeStep(ctx, w.idempotentKey, step)
+	w.IdempotentInst.Save(w.IdempotentKey, w.Steps)
+	for _, step := range w.Steps {
+		err := w.executeStep(ctx, w.IdempotentKey, step)
 		if err != nil && step.IsMandatoryStep {
 			//TODO: instantiate rollback procedure
 			return err
@@ -60,7 +60,7 @@ func (w *Workflow) executeStep(ctx context.Context, idempotentKey string, step S
 		return errors.New("missing Idempotent-Key")
 	}
 
-	if w.idempotentInst.IsStepAlreadyExecuted(ctx, step.Method, idempotentKey) {
+	if w.IdempotentInst.IsStepAlreadyExecuted(ctx, step.Method, idempotentKey) {
 		fmt.Printf("Step %s skipped as it has already been executed with idempotent key: %s\n", step.Method, idempotentKey)
 		return nil
 	}
@@ -70,10 +70,10 @@ func (w *Workflow) executeStep(ctx context.Context, idempotentKey string, step S
 	ref = append(ref, arg)
 
 	method := reflect.ValueOf(step.Instance).MethodByName(step.Method)
-	response := method.Call(ref) //TODO: handle error and start rolling back if it's a mandatory step
+	response := method.Call(ref)
 
 	if len(response) != TOTAL_EXPECTED_RESPONSES {
-		return errors.New(fmt.Sprintf("Method %s did not return 2 values (result, error)", step.Method))
+		return fmt.Errorf("method %s did not return 2 values (result, error)", step.Method)
 	}
 
 	var err error
@@ -82,13 +82,13 @@ func (w *Workflow) executeStep(ctx context.Context, idempotentKey string, step S
 	responseError := response[1].Interface()
 	if responseError != nil {
 		if err, ok = responseError.(error); !ok {
-			return errors.New(fmt.Sprintf("Method %s did not return an error as the second value", step.Method))
+			return fmt.Errorf("error occured while executing the method: %s, error: %w", step.Method, err)
 		}
 	}
 
 	step.StepResult = response[0]
 
-	w.idempotentInst.MarkStepAsExecuted(ctx, idempotentKey, step.Method, step.StepResult, step.StepError)
+	w.IdempotentInst.MarkStepAsExecuted(ctx, idempotentKey, step.Method, step.StepResult, step.StepError)
 
 	return err
 }
