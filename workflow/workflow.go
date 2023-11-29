@@ -7,6 +7,8 @@ import (
 	"reflect"
 )
 
+const TOTAL_EXPECTED_RESPONSES = 2
+
 type Workflow struct {
 	steps          []Step
 	idempotentKey  string
@@ -70,16 +72,16 @@ func (w *Workflow) executeStep(ctx context.Context, idempotentKey string, step S
 	method := reflect.ValueOf(step.Instance).MethodByName(step.Method)
 	response := method.Call(ref) //TODO: handle error and start rolling back if it's a mandatory step
 
-	if len(response) != 2 {
+	if len(response) != TOTAL_EXPECTED_RESPONSES {
 		return errors.New(fmt.Sprintf("Method %s did not return 2 values (result, error)", step.Method))
 	}
 
-	errValue := response[1].Interface()
 	var err error
+	var ok bool
 
-	if errValue != nil {
-		var ok bool
-		if err, ok = errValue.(error); !ok {
+	responseError := response[1].Interface()
+	if responseError != nil {
+		if err, ok = responseError.(error); !ok {
 			return errors.New(fmt.Sprintf("Method %s did not return an error as the second value", step.Method))
 		}
 	}
