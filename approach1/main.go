@@ -4,20 +4,22 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/scalent-io/orchestration-framework/approach1/workflow"
 )
 
 func main() {
 
-	w := workflow.CreateWorkflow()
-	var order Order
+	idempotentKey := uuid.New().String()
+	var idempotentOp IdempotentOp
 
-	order.Id = 1
-	order.Total = 100
+	w := workflow.CreateWorkflow(idempotentKey, idempotentOp)
+	order := Order{Id: 1, Total: 120}
+	wallet := Wallet{Id: 4, Balance: 200}
 
 	w.Register(order, "CreateOrder", "RollbackCreateOrder", true)
-	w.Register(order, "DeductBalance", "RollbackDeductBalance", true)
+	w.Register(wallet, "DeductBalance", "RollbackDeductBalance", true)
 
-	w.Execute(context.Background(), "Idempotent-Key")
+	w.Execute(context.Background())
 	fmt.Println("Main executed")
 }

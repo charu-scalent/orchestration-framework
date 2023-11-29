@@ -1,10 +1,9 @@
 package workflow
 
-type Idempotent interface {
-	GenerateNewKey()
-}
+import "context"
 
-type IdempotentStep interface {
-	GetSteps(key string)
-	UpdateSteps(key, step, status string)
+type Idempotent interface {
+	Save(idempotentKey string, steps []Step)
+	IsStepAlreadyExecuted(ctx context.Context, step, idempotentKey string) bool
+	MarkStepAsExecuted(ctx context.Context, step, idempotentKey string)
 }
