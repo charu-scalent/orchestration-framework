@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -15,9 +16,9 @@ type Wallet struct {
 	Balance float64
 }
 
-func (w Wallet) DeductBalance(ctx context.Context) error {
+func (w Wallet) DeductBalance(ctx context.Context) (interface{}, error) {
 	fmt.Printf("Wallet Instance - Deduct balance executed \n")
-	return nil
+	return "", errors.New("Wallet deduction failed")
 }
 
 func (w Wallet) RollbackDeductBalance(ctx context.Context) error {
